@@ -1,0 +1,10 @@
+version: '3.0'
+
+services:
+  helloworld-service:
+    container_name: helloworld
+    build:
+      context: ../helloworld
+      dockerfile: Dockerfile
+    ports:
+      - "8080:8080"
