@@ -20,4 +20,4 @@ jobs:
         run: docker pull ${{ secrets.DOCKER_USERNAME }}/helloworld:${{ github.event.inputs.tag || 'latest' }}
 
       - name: Run container and output result
-        run: docker run -d --rm -p 8080:8080 ${{ secrets.DOCKER_USERNAME }}/helloworld:${{ github.event.inputs.tag || 'latest' }}
+        run: docker run --rm -p 8080:8080 ${{ secrets.DOCKER_USERNAME }}/helloworld:${{ github.event.inputs.tag || 'latest' }}
