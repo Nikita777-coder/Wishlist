@@ -46,6 +46,10 @@ jobs:
             fi
           
             git_hash=$(git rev-parse --short ${GITHUB_SHA})
+            
+            echo ${GITHUB_REF}
+            echo $'\n'
+            echo githubBranchName
           
             docker tag $module_name ${{ secrets.DOCKER_USERNAME }}/$module_name:$githubBranchName-$git_hash
             docker push ${{ secrets.DOCKER_USERNAME }}/$module_name:$githubBranchName-$git_hash
