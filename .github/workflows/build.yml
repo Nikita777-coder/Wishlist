@@ -50,7 +50,7 @@ jobs:
             docker tag $module_name ${{ secrets.DOCKER_USERNAME }}/$module_name:$githubBranchName-$git_hash
             docker push ${{ secrets.DOCKER_USERNAME }}/$module_name:$githubBranchName-$git_hash
         
-            if [ ${GITHUB_REF} = 'refs/heads/main' ]; then
+            if [ ${GITHUB_REF} = 'refs/heads/main' ] || [ githubBranchName = 'main' ]; then
               docker tag $module_name ${{ secrets.DOCKER_USERNAME }}/module_name:latest
               docker push ${{ secrets.DOCKER_USERNAME }}/module_name:latest
             fi
