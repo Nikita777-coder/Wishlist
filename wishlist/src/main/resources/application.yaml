@@ -1,0 +1,27 @@
+spring:
+  datasource:
+    url: jdbc:postgresql://localhost:5432/wishlist
+    username: admin
+    password: QweS-123!_
+    driver-class-name: org.postgresql.Driver
+    tomcat:
+      max-active: 10
+      max-idle: 5
+      min-idle: 2
+      initial-size: 5
+      remove-abandoned: true
+  jpa:
+    hibernate:
+      ddl-auto: update
+    generate-ddl: true
+    database-platform: org.hibernate.dialect.PostgreSQLDialect
+    show-sql: true
+  h2:
+    console:
+      enabled: true
+
+server:
+  jwt:
+    token:
+      signing:
+        key: ae4fe9efdb3f68ed1d5a9fa40911e98b8b6630fc7507df48210f783760eed5214015979a5c5139a278607ff17063ed9948b84915c57326a25e501e9ecb54e4a93e195348c9d472b41e6b8d8b0eaef4637e1f03ef2310400d2f8d6344c36f901abdb8c5db479f1facfd6c3961ab9b842cf5c5642033cc8a4078500ec97cebd9d555659ab1443719f6ddbe4980293a34601373a2e014cea2b6f40f4ac3de12b69f5b077ff87ff5242fdbee50a3ab056809af0cdcb053a1cb6af625caef1362141c4f1ccc8a840bbcc152dfc80df21f2c033a5c93cf6a454151a7b48082c9c4d2fb92fffbaea19f9c9be26a6cfce715b90720066f2fe94a87d6c6085177f327bb0cd1d93835b8ac79a4307d68cc006fc27bc071030fd07687b208e07435dd5ba69040e040e644ed6a06b8c4f585f3fa1b8e366f3fdac3058cbc1cc5fe6438c15d4187e97421f00d1a8080f11af71bad13c39796a9448decbf51f1fabd5474f69577f12b090d0ca9755e04aa4c8665571c0adf1bfdf2702dad4a5f20046da86757244dad2b54c9fbb271b1d8853c3febdf0678040023574cd5adfbed49bf0c03b902744aa3bd61b706d72faa361e6284d4f4b9872580371f3fe614116de24ece0016aa04c5665fed97c988a99eeb11f4fa450697037b039f2fa404365b21cbcff02b716d675662590422a007771435d236d816f3016fbc29472416d3d6a4611c94cb
