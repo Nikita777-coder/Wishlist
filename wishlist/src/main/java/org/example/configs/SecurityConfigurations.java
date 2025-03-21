@@ -26,7 +26,6 @@ public class SecurityConfigurations {
                 .authorizeHttpRequests(request -> request
                         .requestMatchers(
                                 antMatcher("/auth/**"),
-                                antMatcher("/email/**"),
                                 antMatcher("/actuator/prometheus"),
                                 antMatcher("/swagger-ui/**"),
                                 antMatcher("/v3/api-docs/**"),

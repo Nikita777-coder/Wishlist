@@ -15,6 +15,8 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.web.servlet.config.annotation.CorsRegistry;
 import org.springframework.web.servlet.config.annotation.WebMvcConfigurer;
 
+import java.util.UUID;
+
 @Configuration
 @RequiredArgsConstructor
 public class AppConfigurations {
@@ -27,7 +29,7 @@ public class AppConfigurations {
 
     @Bean
     public UserDetailsService userDetailsService() {
-        return email -> userRepository.findByEmail(email)
+        return id -> userRepository.findById(UUID.fromString(id))
                 .orElseThrow(() -> new UsernameNotFoundException("User not found"));
     }
 

@@ -33,24 +33,6 @@ public class UserEntity implements UserDetails {
     @Column
     private String name;
 
-    @Column(name = "isPractiseBreathOptionTurned")
-    private Boolean hasPractiseBreathOpt = false;
-
-    @Column(name = "isOpenApplicationOptionTurned")
-    private Boolean hasOpenAppOpt = false;
-
-    @Column
-    private LocalTime startTimeOfBreathPractise = LocalTime.of(8, 0);
-
-    @Column
-    private LocalTime stopTimeOfBreathPractise = LocalTime.of(22, 0);
-
-    @Column
-    private Integer countBreathPractiseReminderPerDay = 4;
-
-    @Column
-    private Boolean isPremium;
-
     @Column
     @Enumerated(value = EnumType.STRING)
     private Role role = Role.USER;
@@ -62,7 +44,7 @@ public class UserEntity implements UserDetails {
 
     @Override
     public String getUsername() {
-        return email;
+        return id.toString();
     }
 
     @Override
