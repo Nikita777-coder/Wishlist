@@ -30,11 +30,7 @@ public class UserService {
     private final PasswordEncoder passwordEncoder;
     @Transactional(isolation = Isolation.REPEATABLE_READ)
     public UserDetails createUser(UserEntity entity) {
-        if (userRepository.findByEmail(entity.getEmail()).isPresent()) {
-            throw new IllegalArgumentException("user with this email exists");
-        }
         entity.setPassword(passwordEncoder.encode(entity.getPassword()));
-
         return userRepository.save(entity);
     }
     public UserDetails getUser(String email) {
@@ -43,6 +39,9 @@ public class UserService {
     }
     public UserData getUser(UserDetails userDetails) {
         return userMapper.userEntityToUserData(getUserById(UUID.fromString(userDetails.getUsername())));
+    }
+    public UserEntity getUser(UUID id) {
+        return getUserById(id);
     }
 
     @Transactional(isolation = Isolation.REPEATABLE_READ)
@@ -89,7 +88,7 @@ public class UserService {
         Optional<UserEntity> currentUser = userRepository.findById(id);
 
         if (currentUser.isEmpty()) {
-            throw new RuntimeException("get current user error!");
+            throw new RuntimeException("user not found!");
         }
 
         return currentUser.get();
