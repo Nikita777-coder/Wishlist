@@ -2,8 +2,7 @@ spring:
   datasource:
     url: jdbc:postgresql://localhost:5432/wishlist
     username: admin
-    password: QweS-123!_
-    driver-class-name: org.postgresql.Driver
+    password: Qwe1_wik!
     tomcat:
       max-active: 10
       max-idle: 5
@@ -12,13 +11,11 @@ spring:
       remove-abandoned: true
   jpa:
     hibernate:
-      ddl-auto: update
-    generate-ddl: true
-    database-platform: org.hibernate.dialect.PostgreSQLDialect
+      ddl-auto: none
     show-sql: true
-  h2:
-    console:
-      enabled: true
+  liquibase:
+    change-log: db/changelog/generated-changes.xml
+    enabled: true
 
 server:
   jwt:
