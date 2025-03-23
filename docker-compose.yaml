@@ -19,6 +19,10 @@ services:
     depends_on:
       - postgres
       - loki
+    networks:
+      monitoring:
+        aliases:
+          - app
 
   postgres:
     image: postgres:15
@@ -31,28 +35,20 @@ services:
     volumes:
       - pgdata:/var/lib/postgresql/data
       - ./configs:/docker-entrypoint-initdb.d
+    networks:
+      monitoring:
+        aliases:
+          - postgres
 
   loki:
-    image: grafana/loki:latest
+    image: grafana/loki:main
     ports:
       - "3100:3100"
     command: -config.file=/etc/loki/local-config.yaml
-
-#  loki-bootstrap:
-#    image: curlimages/curl:latest
-#    volumes:
-#      - ./bootstrap-log.json:/bootstrap-log.json
-#    depends_on:
-#      - loki
-#    entrypoint: sh
-#    command:
-#      - -c
-#      - |
-#        sleep 3 &&
-#        curl -v -X POST http://loki:3100/loki/api/v1/push \
-#          -H "Content-Type: application/json" \
-#          --data @/bootstrap-log.json
-  
+    networks:
+      monitoring:
+        aliases:
+          - loki
 
   prometheus:
     image: prom/prometheus
@@ -66,43 +62,8 @@ services:
         aliases:
           - prometheus
 
-  otel-collector:
-    image: otel/opentelemetry-collector-contrib
-    command: [ "--config=/etc/otel-collector-config-demo.yaml", "${OTELCOL_ARGS}" ]
-    volumes:
-      - ./otel-collector-config.yaml:/etc/otel-collector-config-demo.yaml
-    ports:
-      - "1888:1888"
-      - "8888:8888"
-      - "8889:8889"
-      - "13133:13133"
-      - "55679:55679"
-      - "4317:4317"
-      - "4318:4318"
-    depends_on:
-      - jaeger-all-in-one
-      - zipkin-all-in-one
-      - loki
-      - app
-
-  # Jaeger
-  jaeger-all-in-one:
-    image: jaegertracing/all-in-one:latest
-    ports:
-      - "16686:16686"
-      - "14268"
-      - "14250:14250"
-    environment:
-      - COLLECTOR_OTLP_ENABLED=true
-
-  # Zipkin
-  zipkin-all-in-one:
-    image: openzipkin/zipkin:latest
-    ports:
-      - "9411:9411"
-
   grafana:
-    image: grafana/grafana:10.2.3
+    build: './configs/grafana'
     ports:
       - "3000:3000"
     volumes:
@@ -113,12 +74,29 @@ services:
       - GF_AUTH_ANONYMOUS_ENABLED=true
       - GF_AUTH_BASIC_ENABLED=false
       - GF_FEATURE_TOGGLES_ENABLE=accessControlOnCall
+    entrypoint:
+      - sh
+      - -euc
+      - |
+        mkdir -p /etc/grafana/provisioning/datasources
+        cat <<EOF > /etc/grafana/provisioning/datasources/ds.yaml
+        apiVersion: 1
+        datasources:
+        - name: Loki
+          type: loki
+          access: proxy
+          orgId: 1
+          url: http://loki:3100
+          basicAuth: false
+          isDefault: true
+          version: 1
+          editable: false
+        EOF
+        /run.sh
     networks:
       monitoring:
         aliases:
           - grafana
-    depends_on:
-      - loki
 
   alloy:
     image: grafana/alloy:latest
