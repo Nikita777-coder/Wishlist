@@ -5,12 +5,6 @@ datasources:
     type: loki
     access: proxy
     url: http://loki:3100
-    isDefault: true
-    editable: true
-    jsonData:
-      httpHeaderName1: "X-Skip-Health-Check"
-    secureJsonData:
-      httpHeaderValue1: "true"
 
   - name: Prometheus
     type: prometheus

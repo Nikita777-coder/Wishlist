@@ -33,13 +33,10 @@ services:
       - ./configs:/docker-entrypoint-initdb.d
 
   loki:
-    image: grafana/loki:main
-    command: -config.file=/etc/loki/loki-config.yaml --target=all
-    volumes:
-      - ./loki-config.yaml:/etc/loki/loki-config.yaml
-      - ./loki-data:/tmp/loki
+    image: grafana/loki:latest
     ports:
       - "3100:3100"
+    command: -config.file=/etc/loki/local-config.yaml
 
 #  loki-bootstrap:
 #    image: curlimages/curl:latest
