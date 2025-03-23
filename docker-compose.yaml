@@ -1,0 +1,144 @@
+version: '3.8'
+
+services:
+  app:
+    image: wishlist-app
+    build:
+      context: .
+      dockerfile: Dockerfile
+    ports:
+      - "8080:8080"
+    environment:
+      - SPRING_DATASOURCE_URL=jdbc:postgresql://postgres:5432/wishlist
+      - SPRING_DATASOURCE_USERNAME=admin
+      - SPRING_DATASOURCE_PASSWORD=secret123
+      - OTEL_SERVICE_NAME=wishlist
+      - OTEL_EXPORTER_OTLP_ENDPOINT=http://otel-collector:4317
+      - HOSTNAME=app
+      - JWT_SIGNING_KEY=1f99f3ec1a8be7e2ad07e1cbd4b03391db2ff5fd2ffab378459c6c4dff152d20b88b3b05326bcad5e0662b85aeffb8ce5d458a1d53616ec1c6efab376167a291f0961ba5e4cdece298415ed2b1271c6bc46fea0e246fce3158118a748b260918bb6ebab1a13ecc6d736b936c13d45ff32befa2af7ae6e9a2c8a97294e056a860523e28e9a90ad7bf7a687e13a00bd009c689d94014d94f082ab8c8148d6be68cf90dc6c815a74da7abe86c4075f3bab0e98067075ca7680513a1a96a2fdb921be72997c360fbb295f8fc3ad3e9f844f8e1aeb902935240624ce3eb4a6fddd8d094279561e65933d0a492764c71ffedd796890bf525b820e588af07c2c716387b2c93b26ce48d9ccaa17161cb6655eec1d48a2d32ef25866771967ea30a15a628fbc027cb45769150d383550e56dd409df0418649580866521f882e6a2a23ba261a3745eaf7bc6dfea61b256a7ef3b9610d6a5b5605cf208cb94f505a5dfbc17b10e1973373e9147c562106ba45eb15f8c11e819132f6414c4691356e5480a681b9955a7817678f9abcf03316622e82f1a0b76e38b64f20f62f770609ed761bf077827a952a7f6d72fb98c095000dde080d67a9ce4c7cdfad13c2981885a56ae24f012ddad0fbcde36fe18956240a03a1fcb2e6f74e48a2f4206631c8862a07d3d7ce94dd085ae0a623289cf9dfc8bdec8d829eecabe68e37e7088fef566f0a47
+    depends_on:
+      - postgres
+      - loki
+
+  postgres:
+    image: postgres:15
+    restart: always
+    environment:
+      POSTGRES_USER: admin
+      POSTGRES_PASSWORD: secret123
+    ports:
+      - "15432:5432"
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+      - ./configs:/docker-entrypoint-initdb.d
+
+  loki:
+    image: grafana/loki:main
+    command: -config.file=/etc/loki/loki-config.yaml --target=all
+    volumes:
+      - ./loki-config.yaml:/etc/loki/loki-config.yaml
+      - ./loki-data:/tmp/loki
+    ports:
+      - "3100:3100"
+
+#  loki-bootstrap:
+#    image: curlimages/curl:latest
+#    volumes:
+#      - ./bootstrap-log.json:/bootstrap-log.json
+#    depends_on:
+#      - loki
+#    entrypoint: sh
+#    command:
+#      - -c
+#      - |
+#        sleep 3 &&
+#        curl -v -X POST http://loki:3100/loki/api/v1/push \
+#          -H "Content-Type: application/json" \
+#          --data @/bootstrap-log.json
+  
+
+  prometheus:
+    image: prom/prometheus
+    ports:
+      - "9090:9090"
+    volumes:
+      - ./prometheus.yml:/etc/prometheus/prometheus.yml:ro
+      - ./prometheus:/prometheus
+    networks:
+      monitoring:
+        aliases:
+          - prometheus
+
+  otel-collector:
+    image: otel/opentelemetry-collector-contrib
+    command: [ "--config=/etc/otel-collector-config-demo.yaml", "${OTELCOL_ARGS}" ]
+    volumes:
+      - ./otel-collector-config.yaml:/etc/otel-collector-config-demo.yaml
+    ports:
+      - "1888:1888"
+      - "8888:8888"
+      - "8889:8889"
+      - "13133:13133"
+      - "55679:55679"
+      - "4317:4317"
+      - "4318:4318"
+    depends_on:
+      - jaeger-all-in-one
+      - zipkin-all-in-one
+      - loki
+      - app
+
+  # Jaeger
+  jaeger-all-in-one:
+    image: jaegertracing/all-in-one:latest
+    ports:
+      - "16686:16686"
+      - "14268"
+      - "14250:14250"
+    environment:
+      - COLLECTOR_OTLP_ENABLED=true
+
+  # Zipkin
+  zipkin-all-in-one:
+    image: openzipkin/zipkin:latest
+    ports:
+      - "9411:9411"
+
+  grafana:
+    image: grafana/grafana:10.2.3
+    ports:
+      - "3000:3000"
+    volumes:
+      - grafana-storage:/var/lib/grafana
+      - ./grafana/provisioning:/etc/grafana/provisioning
+    environment:
+      - GF_AUTH_ANONYMOUS_ORG_ROLE=Admin
+      - GF_AUTH_ANONYMOUS_ENABLED=true
+      - GF_AUTH_BASIC_ENABLED=false
+      - GF_FEATURE_TOGGLES_ENABLE=accessControlOnCall
+    networks:
+      monitoring:
+        aliases:
+          - grafana
+    depends_on:
+      - loki
+
+  alloy:
+    image: grafana/alloy:latest
+    ports:
+      - "12345:12345"
+    volumes:
+      - ./alloy-config.alloy:/etc/alloy/config.alloy
+      - ./logs:/tmp/app-logs/
+    command: run --server.http.listen-addr=0.0.0.0:12345 --storage.path=/var/lib/alloy/data /etc/alloy/config.alloy
+    depends_on:
+      - app
+      - loki
+
+networks:
+  monitoring:
+    driver: bridge
+
+volumes:
+  grafana-storage:
+  pgdata:
